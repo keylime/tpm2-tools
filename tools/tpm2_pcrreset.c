@@ -28,41 +28,68 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 // THE POSSIBILITY OF SUCH DAMAGE.
 //**********************************************************************;
-#ifndef SRC_PCR_H_
-#define SRC_PCR_H_
 
-#include <stdbool.h>
+#include <stdlib.h>
 
 #include <tss2/tss2_sys.h>
 
-typedef struct tpm2_algorithm tpm2_algorithm;
-struct tpm2_algorithm {
-    int count;
-    TPMI_ALG_HASH alg[8]; //XXX Why 8?
+#include "log.h"
+#include "tpm2_alg_util.h"
+#include "tpm2_options.h"
+#include "tpm2_tool.h"
+#include "tpm2_util.h"
+
+typedef struct tpm_pcr_reset_ctx tpm_pcr_reset_ctx;
+struct tpm_pcr_reset_ctx {
+    TPMI_DH_PCR pcr_index;
 };
 
-typedef struct tpm2_pcrs tpm2_pcrs;
-struct tpm2_pcrs {
-    size_t count;
-    TPML_DIGEST pcr_values[24]; //XXX Why 24?
-};
+static tpm_pcr_reset_ctx ctx;
 
-/**
- * Echo out all PCR banks according to g_pcrSelection & g_pcrs->.
- * @param pcrSelect
- *  Description of which PCR registers are selected.
-^ * @param pcrs
-^ *  Struct containing PCR digests.
- * @return
- *  True on success, false otherwise.
- */
-bool pcr_print_pcr_struct(TPML_PCR_SELECTION *pcrSelect, tpm2_pcrs *pcrs);
+static bool pcr_reset(TSS2_SYS_CONTEXT *sapi_context) {
+    TSS2L_SYS_AUTH_RESPONSE sessions_data_out;
+    TSS2L_SYS_AUTH_COMMAND sessions_data = { 1, {{ .sessionHandle=TPM2_RS_PW }}};
 
-bool pcr_parse_selections(const char *arg, TPML_PCR_SELECTION *pcrSels);
-bool pcr_parse_list(const char *str, size_t len, TPMS_PCR_SELECTION *pcrSel);
-bool pcr_get_banks(TSS2_SYS_CONTEXT *sapi_context, TPMS_CAPABILITY_DATA *capability_data, tpm2_algorithm *algs);
-bool pcr_init_pcr_selection(TPMS_CAPABILITY_DATA *cap_data, TPML_PCR_SELECTION *pcr_sel, TPMI_ALG_HASH alg_id);
-bool pcr_check_pcr_selection(TPMS_CAPABILITY_DATA *cap_data, TPML_PCR_SELECTION *pcr_sel);
-bool pcr_read_pcr_values(TSS2_SYS_CONTEXT *sapi_context, TPML_PCR_SELECTION *pcrSelections, tpm2_pcrs *pcrs);
+    TSS2_RC rval = TSS2_RETRY_EXP(Tss2_Sys_PCR_Reset(sapi_context, ctx.pcr_index, &sessions_data,
+            &sessions_data_out));
+    if (rval != TSS2_RC_SUCCESS) {
+        LOG_ERR("Could not reset pcr index: 0x%X", ctx.pcr_index);
+        LOG_PERR(Tss2_Sys_SequenceUpdate, rval);
+        return false;
+    }
 
-#endif /* SRC_PCR_H_ */
+    return true;
+}
+
+static bool on_arg(int argc, char **argv) {
+
+    if (argc != 1) {
+        LOG_ERR("Expected a PCR index specification,"
+                "ie: <pcr index>, got: 0");
+        return false;
+    }
+
+    bool result = tpm2_util_string_to_uint32(argv[0], &ctx.pcr_index);
+    if (!result) {
+        LOG_ERR("Error converting size to a number, got: \"%s\".",
+                argv[0]);
+        return false;
+    }
+
+    return true;
+}
+
+bool tpm2_tool_onstart(tpm2_options **opts) {
+
+    *opts = tpm2_options_new(NULL, 0, NULL, NULL, on_arg, 0);
+
+    return *opts != NULL;
+}
+
+int tpm2_tool_onrun(TSS2_SYS_CONTEXT *sapi_context, tpm2_option_flags flags) {
+
+    UNUSED(flags);
+
+    return pcr_reset(sapi_context) != true;
+}
+

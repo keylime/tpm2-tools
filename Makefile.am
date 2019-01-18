@@ -53,6 +53,7 @@ bin_PROGRAMS = \
     tools/misc/tpm2_rc_decode \
     tools/tpm2_activatecredential \
     tools/tpm2_certify \
+    tools/tpm2_checkquote \
     tools/tpm2_changeauth \
     tools/tpm2_clear \
     tools/tpm2_clearlock \
@@ -61,6 +62,7 @@ bin_PROGRAMS = \
     tools/tpm2_createek \
     tools/tpm2_createpolicy \
     tools/tpm2_createprimary \
+    tools/tpm2_deluxequote \
     tools/tpm2_dictionarylockout \
     tools/tpm2_getcap \
     tools/tpm2_encryptdecrypt \
@@ -84,6 +86,7 @@ bin_PROGRAMS = \
     tools/tpm2_pcrevent \
     tools/tpm2_pcrextend \
     tools/tpm2_pcrlist \
+    tools/tpm2_pcrreset \
     tools/tpm2_policypcr \
     tools/tpm2_policyauthorize \
     tools/tpm2_policyor \
@@ -125,6 +128,8 @@ tools_tpm2_getmanufec_CFLAG = $(AM_CFLAGS) $(CURL_CFLAGS)
 tools_tpm2_getmanufec_LDADD = $(LDADD) $(CURL_LIBS)
 tools_tpm2_getmanufec_SOURCES = tools/tpm2_getmanufec.c $(TOOL_SRC)
 tools_tpm2_quote_SOURCES = tools/tpm2_quote.c $(TOOL_SRC)
+tools_tpm2_deluxequote_SOURCES = tools/tpm2_deluxequote.c $(TOOL_SRC)
+tools_tpm2_checkquote_SOURCES = tools/tpm2_checkquote.c $(TOOL_SRC)
 tools_tpm2_changeauth_SOURCES = tools/tpm2_changeauth.c $(TOOL_SRC)
 tools_tpm2_createek_SOURCES = tools/tpm2_createek.c $(TOOL_SRC)
 tools_tpm2_createak_SOURCES = tools/tpm2_createak.c $(TOOL_SRC)
@@ -151,6 +156,7 @@ tools_tpm2_unseal_SOURCES = tools/tpm2_unseal.c $(TOOL_SRC)
 tools_tpm2_dictionarylockout_SOURCES = tools/tpm2_dictionarylockout.c $(TOOL_SRC)
 tools_tpm2_createpolicy_SOURCES = tools/tpm2_createpolicy.c $(TOOL_SRC)
 tools_tpm2_pcrextend_SOURCES = tools/tpm2_pcrextend.c $(TOOL_SRC)
+tools_tpm2_pcrreset_SOURCES = tools/tpm2_pcrreset.c $(TOOL_SRC)
 tools_tpm2_pcrevent_SOURCES = tools/tpm2_pcrevent.c $(TOOL_SRC)
 tools_tpm2_import_SOURCES = tools/tpm2_import.c $(TOOL_SRC)
 tools_tpm2_flushcontext_SOURCES = tools/tpm2_flushcontext.c $(TOOL_SRC)
