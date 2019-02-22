@@ -83,8 +83,8 @@ const EVP_MD *tpm2_openssl_halg_from_tpmhalg(TPMI_ALG_HASH algorithm) {
     /* no return, not possible */
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL || defined(LIBRESSL_VERSION_NUMBER) /* OpenSSL 1.1.0 */
-static int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
+#if defined(LIB_TPM2_OPENSSL_OPENSSL_PRE11)
+int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
 
     if ((r->n == NULL && n == NULL) || (r->e == NULL && e == NULL)) {
         return 0;
